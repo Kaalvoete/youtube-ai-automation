@@ -41,7 +41,7 @@ def create(
         
         # Generate script
         print("[1/3] Generating script...")
-        generator = ScriptGenerator(api_provider="openai")
+        generator = ScriptGenerator(api_provider="anthropic")
         script = generator.generate_script(prompt, type, duration)
         print(f"✅ Script created: {script.get('title', 'Untitled')}\n")
         
@@ -115,7 +115,7 @@ def test(demo: bool):
     
     # Test script generation
     print("[TEST 1] Script Generation")
-    generator = ScriptGenerator(api_provider="openai")
+    generator = ScriptGenerator(api_provider="anthropic")
     script = generator.generate_script(
         "Use ChatGPT to automate email",
         "tutorial",
