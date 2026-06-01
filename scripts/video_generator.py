@@ -2,10 +2,12 @@
 """
 Video Generator - Creates YouTube-ready videos from scripts
 Handles both Shorts (60s) and Long-form (3-5 mins)
+Fixes Unicode/emoji encoding issues
 """
 
 import os
 import json
+import unicodedata
 from pathlib import Path
 from typing import Dict, List
 from PIL import Image, ImageDraw, ImageFont
@@ -19,6 +21,19 @@ class VideoGenerator:
     def __init__(self, output_dir: str = "output"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
+    
+    def _sanitize_text_for_rendering(self, text: str) -> str:
+        """
+        Remove emoji and other Unicode characters that PIL/latin-1 can't render
+        """
+        # Remove characters outside BMP and emoji (Symbol category)
+        sanitized = ''.join(
+            char for char in text 
+            if unicodedata.category(char)[0] != 'S'  # 'S' = Symbol (includes emoji)
+            and ord(char) < 0x10000  # Keep only BMP characters
+        )
+        # Clean up extra spaces from removed characters
+        return ' '.join(sanitized.split())
     
     def create_shorts_video(self, script: Dict, video_id: str = "1") -> str:
         """
@@ -107,6 +122,9 @@ class VideoGenerator:
         else:
             img_size = (1920, 1080)
         
+        # Sanitize title to remove unsupported characters
+        title = self._sanitize_text_for_rendering(title)
+        
         # Create image with gradient background
         img = Image.new('RGB', img_size, color=(20, 20, 30))  # Dark blue-black
         draw = ImageDraw.Draw(img)
@@ -150,6 +168,9 @@ class VideoGenerator:
             img_size = (1080, 1920)
         else:
             img_size = (1920, 1080)
+        
+        # Sanitize text to remove unsupported characters
+        text = self._sanitize_text_for_rendering(text)
         
         img = Image.new('RGB', img_size, color=(20, 20, 30))
         draw = ImageDraw.Draw(img)
