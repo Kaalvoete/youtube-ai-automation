@@ -1,0 +1,25 @@
+# Daily AI & Automation Hack Prompts
+# Format: [Video Type] | [Specific Hack/Tool] | [Duration]
+# Video Types: Tool Tutorial, Life Hack, Time-Saving Tip, AI Comparison, Workflow Optimization
+# Duration: 3-min-short OR 5-min
+
+Tool Tutorial | ChatGPT Custom Instructions to create your personal AI assistant | 5-min
+Life Hack | Use Zapier to automate your entire email workflow in 10 minutes | 5-min
+Time-Saving Tip | 3 AI Tools that replace expensive software | 3-min-short
+AI Comparison | Claude vs ChatGPT vs Gemini for content creation | 5-min
+Workflow Optimization | Automate your social media posting with Make.com | 5-min
+Tool Tutorial | Build a YouTube script generator with OpenAI API | 5-min
+Life Hack | Use Perplexity AI instead of Google for research | 3-min-short
+Time-Saving Tip | 5 Free AI tools that save 10 hours a week | 3-min-short
+AI Comparison | Best AI video generators in 2026 | 5-min
+Workflow Optimization | Set up automated email responses with AI | 5-min
+Tool Tutorial | Create AI-powered chatbots with no coding | 5-min
+Life Hack | Use AI to generate unlimited content ideas in seconds | 3-min-short
+Time-Saving Tip | Automate your calendar scheduling with Cal.com | 3-min-short
+AI Comparison | GPT-4 vs Grok vs other LLMs for automation | 5-min
+Workflow Optimization | Batch process videos with AI upscaling | 5-min
+Tool Tutorial | Build your first Discord bot with ChatGPT API | 5-min
+Life Hack | Use AI to write and schedule all your LinkedIn posts | 3-min-short
+Time-Saving Tip | 7 keyboard shortcuts that save hours daily | 3-min-short
+AI Comparison | Best text-to-speech AI voices for creators | 5-min
+Workflow Optimization | Automate customer support with AI chatbots | 5-min

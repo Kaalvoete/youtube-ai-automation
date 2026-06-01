@@ -1,0 +1,129 @@
+# ============================================
+# YouTube AI Automation Configuration
+# ============================================
+
+# Channel Settings
+channel:
+  name: "AI Automation Hacks"
+  description: "Daily AI tools and automation hacks to save you hours every week. From ChatGPT to Make.com - we cover the best free tools."
+  category: "Tech"
+
+# Video Settings
+video:
+  shorts:
+    length_seconds: 60
+    resolution: "1080x1920"
+    fps: 30
+    aspect_ratio: "9:16"
+  
+  longform:
+    length_seconds: 300  # 5 minutes
+    resolution: "1920x1080"
+    fps: 30
+    aspect_ratio: "16:9"
+  
+  # Animation & effects
+  default_music: "background_uplifting.mp3"
+  fade_duration: 0.5
+  text_animation_speed: 0.05
+  intro_duration: 3
+  outro_duration: 5
+
+# Upload Schedule
+upload:
+  frequency: "daily"
+  videos_per_day: 2
+  time_of_day: "09:00"  # 24-hour format (9 AM)
+  timezone: "UTC"
+  days_of_week:
+    - "Mon"
+    - "Tue"
+    - "Wed"
+    - "Thu"
+    - "Fri"
+    - "Sat"
+    - "Sun"
+
+# Content Settings
+content:
+  niche: "AI & Automation Hacks"
+  language: "en"
+  tone: "engaging, informative, conversational"
+  
+  content_types:
+    - "Tool Tutorial"
+    - "Life Hack"
+    - "Time-Saving Tip"
+    - "AI Comparison"
+    - "Workflow Optimization"
+  
+  # Script generation
+  script:
+    use_api: "openai"  # Options: openai, cohere, local
+    temperature: 0.7
+    max_tokens: 1500
+    include_hook: true
+    include_cta: true
+    include_timestamps: true
+
+# SEO & Metadata
+seo:
+  # Keywords to target
+  target_keywords:
+    - "AI tools"
+    - "automation hacks"
+    - "productivity tips"
+    - "ChatGPT hacks"
+    - "AI automation"
+    - "Make.com tutorials"
+    - "Zapier automation"
+  
+  # Default tags
+  common_tags:
+    - "AI"
+    - "automation"
+    - "productivity"
+    - "tutorial"
+    - "hacks"
+    - "tools"
+    - "ChatGPT"
+    - "tech"
+  
+  # Thumbnail settings
+  thumbnail:
+    style: "bold_minimal"
+    text_size: "large"
+    text_position: "center"
+    background_color: "#1a1a2e"
+    text_color: "#ff6b35"
+    generate_automatically: true
+  
+  # Category ID for YouTube
+  youtube_category_id: "28"  # Tech category
+
+# Monetization
+monetization:
+  enable_ads: true
+  enable_sponsorships: false
+  enable_merch: false
+  enable_channel_memberships: false
+
+# Advanced Settings
+advanced:
+  # Use stock footage
+  use_stock_footage: true
+  
+  # Generate captions automatically
+  auto_captions: true
+  
+  # Optimize for algorithm
+  optimize_for_shorts: true
+  optimize_for_recommendations: true
+  
+  # Retry settings
+  max_retries: 3
+  retry_delay: 5  # seconds
+  
+  # Logging
+  log_level: "INFO"
+  save_logs: true

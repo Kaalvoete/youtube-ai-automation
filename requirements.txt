@@ -1,0 +1,22 @@
+python-dotenv==1.0.0
+requests==2.31.0
+PyYAML==6.0.1
+ffmpeg-python==0.2.1
+Pillow==10.0.0
+moviepy==1.0.3
+click==8.1.7
+schedule==1.2.0
+
+# OpenAI (optional - for script generation)
+openai==1.0.0
+
+# YouTube API
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.98.0
+
+# Alternative APIs (optional)
+cohere==4.21
+
+# Utilities
+python-dateutil==2.8.2
