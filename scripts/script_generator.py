@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI Script Generator - Creates engaging scripts for YouTube videos
-Uses OpenAI API or free alternatives
+Uses OpenAI API, Anthropic Claude, Cohere, or free alternatives
 """
 
 import os
@@ -14,9 +14,10 @@ load_dotenv()
 class ScriptGenerator:
     """
     Generates engaging YouTube scripts for AI & Automation content
+    Supports: OpenAI, Anthropic Claude, Cohere
     """
     
-    def __init__(self, api_provider: str = "openai"):
+    def __init__(self, api_provider: str = "anthropic"):
         self.api_provider = api_provider
         self.setup_client()
     
@@ -30,6 +31,14 @@ class ScriptGenerator:
                 )
             except ImportError:
                 print("Install openai: pip install openai")
+                self.client = None
+        
+        elif self.api_provider == "anthropic":
+            try:
+                from anthropic import Anthropic
+                self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            except ImportError:
+                print("Install anthropic: pip install anthropic")
                 self.client = None
         
         elif self.api_provider == "cohere":
@@ -54,23 +63,34 @@ class ScriptGenerator:
         """
         
         system_prompt = f"""You are a YouTube content creator specializing in AI & Automation hacks.
-        Create engaging, viral-worthy scripts that keep viewers glued to the screen.
-        The script should be for a {video_type} video lasting {duration} minutes.
-        
-        Format your response as JSON with:
-        - title: Catchy YouTube title (under 60 chars, include emojis)
-        - hook: First 10 seconds to grab attention (50-100 words)
-        - script: Full script with natural pauses and emphasis markers
-        - description: YouTube description (150+ chars)
-        - tags: List of 10 relevant tags
-        - cta: Call-to-action (subscribe, like, etc.)
-        
-        Make it conversational, use numbers and emojis in title, and include a twist or surprise."""
+Create engaging, viral-worthy scripts that keep viewers glued to the screen.
+The script should be for a {video_type} video lasting {duration} minutes.
+
+Format your response as JSON with:
+- title: Catchy YouTube title (under 60 chars, include emojis)
+- hook: First 10 seconds to grab attention (50-100 words)
+- script: Full script with natural pauses and emphasis markers
+- description: YouTube description (150+ chars)
+- tags: List of 10 relevant tags
+- cta: Call-to-action (subscribe, like, etc.)
+
+Make it conversational, use numbers and emojis in title, and include a twist or surprise."""
         
         user_message = f"Create a YouTube video script about: {prompt}"
         
         try:
-            if self.api_provider == "openai" and self.client:
+            if self.api_provider == "anthropic" and self.client:
+                response = self.client.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    max_tokens=1500,
+                    system=system_prompt,
+                    messages=[
+                        {"role": "user", "content": user_message}
+                    ]
+                )
+                script_text = response.content[0].text
+            
+            elif self.api_provider == "openai" and self.client:
                 response = self.client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
@@ -115,7 +135,7 @@ class ScriptGenerator:
         
         # Fallback template
         return {
-            "title": "🤖 AI Hack You Didn't Know About",
+            "title": "AI Hack You Didn't Know About",
             "script": response_text,
             "description": "Check out this AI hack! Subscribe for more AI & automation tips.",
             "tags": ["AI", "automation", "tutorial", "hack", "productivity"]
@@ -124,25 +144,25 @@ class ScriptGenerator:
     def _generate_template(self, prompt: str, video_type: str, duration: str) -> Dict:
         """Generate a template script when API is unavailable"""
         return {
-            "title": f"🤖 {prompt[:50]}... (WORKS!)",
+            "title": f"{prompt[:50]}... (WORKS!)",
             "hook": "Wait till the end - this is going to blow your mind...",
             "script": f"""Hey everyone! Today I'm showing you {prompt}.
             
-            [INTRO - 5 seconds]
-            Most people don't know this, but you can use AI to dramatically save time.
-            
-            [MAIN CONTENT - {duration} minutes]
-            Here's how it works:
-            1. First step
-            2. Second step  
-            3. Third step
-            
-            [RESULTS]
-            As you can see, this is incredible.
-            
-            [CTA - 10 seconds]
-            If you found this helpful, smash that like button and subscribe for more hacks!
-            """,
+[INTRO - 5 seconds]
+Most people don't know this, but you can use AI to dramatically save time.
+
+[MAIN CONTENT - {duration} minutes]
+Here's how it works:
+1. First step
+2. Second step  
+3. Third step
+
+[RESULTS]
+As you can see, this is incredible.
+
+[CTA - 10 seconds]
+If you found this helpful, smash that like button and subscribe for more hacks!
+""",
             "description": f"Learn about {prompt}. Free tools and hacks for AI automation. Subscribe for daily content!",
             "tags": ["AI", "automation", "tutorial", "hack", "productivity", "tools", "chatgpt"],
             "cta": "Subscribe for more AI hacks!"
@@ -151,7 +171,7 @@ class ScriptGenerator:
 
 if __name__ == "__main__":
     # Test the script generator
-    generator = ScriptGenerator(api_provider="openai")
+    generator = ScriptGenerator(api_provider="anthropic")
     
     script = generator.generate_script(
         prompt="ChatGPT hack to save 5 hours per week",
