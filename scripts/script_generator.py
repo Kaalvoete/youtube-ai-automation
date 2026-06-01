@@ -81,7 +81,7 @@ Make it conversational, use numbers and emojis in title, and include a twist or 
         try:
             if self.api_provider == "anthropic" and self.client:
                 response = self.client.messages.create(
-                    model="claude-3-5-sonnet-20240620",
+                    model="claude-opus-latest",
                     max_tokens=1500,
                     system=system_prompt,
                     messages=[
