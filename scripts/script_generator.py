@@ -24,27 +24,40 @@ class ScriptGenerator:
     def setup_client(self):
         """Initialize API client"""
         if self.api_provider == "openai":
+            api_key = os.getenv("OPENAI_API_KEY", "")
+            if not api_key or api_key == "your_openai_api_key_here":
+                print("Warning: OPENAI_API_KEY not configured. Set it in .env")
+                self.client = None
+                return
             try:
                 import openai
-                self.client = openai.OpenAI(
-                    api_key=os.getenv("OPENAI_API_KEY")
-                )
+                self.client = openai.OpenAI(api_key=api_key)
             except ImportError:
                 print("Install openai: pip install openai")
                 self.client = None
         
         elif self.api_provider == "anthropic":
+            api_key = os.getenv("ANTHROPIC_API_KEY", "")
+            if not api_key or api_key == "your_anthropic_api_key_here":
+                print("Warning: ANTHROPIC_API_KEY not configured. Set it in .env")
+                self.client = None
+                return
             try:
                 from anthropic import Anthropic
-                self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                self.client = Anthropic(api_key=api_key)
             except ImportError:
                 print("Install anthropic: pip install anthropic")
                 self.client = None
         
         elif self.api_provider == "cohere":
+            api_key = os.getenv("COHERE_API_KEY", "")
+            if not api_key or api_key == "your_cohere_api_key_here":
+                print("Warning: COHERE_API_KEY not configured. Set it in .env")
+                self.client = None
+                return
             try:
                 import cohere
-                self.client = cohere.Client(os.getenv("COHERE_API_KEY"))
+                self.client = cohere.Client(api_key)
             except ImportError:
                 print("Install cohere: pip install cohere")
                 self.client = None
@@ -130,7 +143,7 @@ Make it conversational, use numbers and emojis in title, and include a twist or 
             json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())
-        except:
+        except (json.JSONDecodeError, ValueError):
             pass
         
         # Fallback template

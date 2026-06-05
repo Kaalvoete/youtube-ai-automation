@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+MAX_PROMPT_LENGTH = 500
+ALLOWED_TYPES = ("tutorial", "comparison", "hack", "short", "life-hack", "workflow")
+ALLOWED_DURATIONS = ("3-min", "5-min", "10-min", "3-min-short")
+
 @click.group()
 def cli():
     """🎬 YouTube AI Automation - Generate and upload AI videos daily"""
@@ -30,6 +34,19 @@ def create(
     
     if not prompt:
         prompt = click.prompt('Enter your video prompt')
+    
+    # Input validation
+    if len(prompt) > MAX_PROMPT_LENGTH:
+        print(f"Error: Prompt too long ({len(prompt)} chars). Max is {MAX_PROMPT_LENGTH}.")
+        sys.exit(1)
+    
+    if type not in ALLOWED_TYPES:
+        print(f"Error: Invalid type '{type}'. Allowed: {', '.join(ALLOWED_TYPES)}")
+        sys.exit(1)
+    
+    if duration not in ALLOWED_DURATIONS:
+        print(f"Error: Invalid duration '{duration}'. Allowed: {', '.join(ALLOWED_DURATIONS)}")
+        sys.exit(1)
     
     print(f"\n🎬 Creating video: {prompt}")
     print(f"Type: {type} | Duration: {duration}\n")

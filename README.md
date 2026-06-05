@@ -59,7 +59,7 @@ python main.py schedule
 ### Required
 - **OpenAI API** - Script generation ($5 free credits)
 - **YouTube API** - Upload videos (free)
-- **YouTube Channel** - Your channel to upload to (UCcItHjCePEXykLke8QIhqZQ)
+- **YouTube Channel** - Your channel to upload to
 
 ### Optional (Better quality)
 - **ElevenLabs** - Realistic AI voices (10K chars free)
