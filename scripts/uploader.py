@@ -5,9 +5,12 @@ YouTube Uploader - Automatically uploads videos to YouTube
 
 import os
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Optional
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -31,7 +34,10 @@ class YouTubeUploader:
             self.youtube = build('youtube', 'v3')
             self.MediaFileUpload = MediaFileUpload
         except ImportError:
-            print("Install: pip install google-api-python-client google-auth-oauthlib")
+            logger.warning(
+                "Google API packages not installed. "
+                "Install with: pip install google-api-python-client google-auth-oauthlib"
+            )
             self.youtube = None
     
     def upload_video(self, video_file: str, metadata: Dict, 
@@ -41,12 +47,13 @@ class YouTubeUploader:
         """
         
         if not os.path.exists(video_file):
-            print(f"Video file not found: {video_file}")
-            return None
+            raise FileNotFoundError(f"Video file not found: {video_file}")
         
         if not self.youtube:
-            print("YouTube client not initialized")
-            return None
+            raise RuntimeError(
+                "YouTube client not initialized. "
+                "Ensure google-api-python-client is installed and credentials are configured."
+            )
         
         try:
             body = {
@@ -85,8 +92,8 @@ class YouTubeUploader:
             return video_id
         
         except Exception as e:
-            print(f"Error uploading video: {e}")
-            return None
+            logger.error("Failed to upload video '%s': %s", video_file, e, exc_info=True)
+            raise
     
     def schedule_upload(self, video_file: str, metadata: Dict, 
                        publish_time: str) -> Optional[str]:
@@ -95,7 +102,10 @@ class YouTubeUploader:
         """
         
         if not self.youtube:
-            return None
+            raise RuntimeError(
+                "YouTube client not initialized. "
+                "Ensure google-api-python-client is installed and credentials are configured."
+            )
         
         try:
             body = {
@@ -133,5 +143,8 @@ class YouTubeUploader:
             return video_id
         
         except Exception as e:
-            print(f"Error scheduling video: {e}")
-            return None
+            logger.error(
+                "Failed to schedule video '%s' for %s: %s",
+                video_file, publish_time, e, exc_info=True,
+            )
+            raise

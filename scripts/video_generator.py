@@ -7,11 +7,14 @@ Fixes Unicode/emoji encoding issues
 
 import os
 import json
+import logging
 import unicodedata
 from pathlib import Path
 from typing import Dict, List
 from PIL import Image, ImageDraw, ImageFont
 import subprocess
+
+logger = logging.getLogger(__name__)
 
 class VideoGenerator:
     """
@@ -132,7 +135,8 @@ class VideoGenerator:
         # Add title text
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 80)
-        except:
+        except (IOError, OSError) as e:
+            logger.warning("Could not load DejaVuSans-Bold font: %s. Using default.", e)
             font = ImageFont.load_default()
         
         # Wrap and center text
@@ -177,7 +181,8 @@ class VideoGenerator:
         
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 50)
-        except:
+        except (IOError, OSError) as e:
+            logger.warning("Could not load DejaVuSans font: %s. Using default.", e)
             font = ImageFont.load_default()
         
         # Wrap text
@@ -208,13 +213,17 @@ class VideoGenerator:
                                   duration_seconds: int, fps: int, resolution: str) -> str:
         """
         Create video from image frames using FFmpeg
+        
+        Raises:
+            ValueError: If no frames are provided.
         """
         if not frames:
-            print("No frames to create video")
-            return ""
+            raise ValueError(
+                f"Cannot create video '{output_file}': no frames provided"
+            )
         
         # For now, create a placeholder
-        print(f"Would create video: {output_file} ({duration_seconds}s, {resolution})")
+        logger.info("Would create video: %s (%ds, %s)", output_file, duration_seconds, resolution)
         
         # Create dummy MP4 file
         output_file.touch()
