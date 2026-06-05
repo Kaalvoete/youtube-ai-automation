@@ -13,6 +13,13 @@ from typing import Dict, List
 from PIL import Image, ImageDraw, ImageFont
 import subprocess
 
+from scripts.utils import (
+    draw_centered_text,
+    load_font,
+    parse_resolution,
+    wrap_text,
+)
+
 class VideoGenerator:
     """
     Generates video files from scripts and assets
@@ -117,45 +124,15 @@ class VideoGenerator:
         """
         Create a title/thumbnail frame image
         """
-        if resolution == "1080x1920":
-            img_size = (1080, 1920)
-        else:
-            img_size = (1920, 1080)
-        
-        # Sanitize title to remove unsupported characters
+        img_size = parse_resolution(resolution)
         title = self._sanitize_text_for_rendering(title)
-        
-        # Create image with gradient background
-        img = Image.new('RGB', img_size, color=(20, 20, 30))  # Dark blue-black
+
+        img = Image.new('RGB', img_size, color=(20, 20, 30))
         draw = ImageDraw.Draw(img)
-        
-        # Add title text
-        try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 80)
-        except:
-            font = ImageFont.load_default()
-        
-        # Wrap and center text
-        words = title.split()
-        lines = []
-        current_line = []
-        
-        for word in words:
-            current_line.append(word)
-            if len(" ".join(current_line)) > 20:
-                lines.append(" ".join(current_line[:-1]))
-                current_line = [word]
-        lines.append(" ".join(current_line))
-        
-        # Draw text centered
-        y_offset = (img_size[1] - len(lines) * 100) // 2
-        for i, line in enumerate(lines):
-            bbox = draw.textbbox((0, 0), line, font=font)
-            text_width = bbox[2] - bbox[0]
-            x = (img_size[0] - text_width) // 2
-            draw.text((x, y_offset + i * 100), line, fill=(255, 100, 0), font=font)
-        
-        # Save frame
+        font = load_font(size=80, bold=True)
+        lines = wrap_text(title, max_chars_per_line=20)
+        draw_centered_text(draw, lines, font, img_size, y_spacing=100, fill=(255, 100, 0))
+
         frame_path = self.output_dir / f"frame_title_{hash(title)}.png"
         img.save(frame_path)
         return str(frame_path)
@@ -164,42 +141,15 @@ class VideoGenerator:
         """
         Create a text overlay frame
         """
-        if resolution == "1080x1920":
-            img_size = (1080, 1920)
-        else:
-            img_size = (1920, 1080)
-        
-        # Sanitize text to remove unsupported characters
+        img_size = parse_resolution(resolution)
         text = self._sanitize_text_for_rendering(text)
-        
+
         img = Image.new('RGB', img_size, color=(20, 20, 30))
         draw = ImageDraw.Draw(img)
-        
-        try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 50)
-        except:
-            font = ImageFont.load_default()
-        
-        # Wrap text
-        words = text.split()
-        lines = []
-        current_line = []
-        
-        for word in words:
-            current_line.append(word)
-            if len(" ".join(current_line)) > 30:
-                lines.append(" ".join(current_line[:-1]))
-                current_line = [word]
-        lines.append(" ".join(current_line))
-        
-        # Draw centered
-        y_offset = (img_size[1] - len(lines) * 70) // 2
-        for i, line in enumerate(lines):
-            bbox = draw.textbbox((0, 0), line, font=font)
-            text_width = bbox[2] - bbox[0]
-            x = (img_size[0] - text_width) // 2
-            draw.text((x, y_offset + i * 70), line, fill=(255, 255, 255), font=font)
-        
+        font = load_font(size=50, bold=False)
+        lines = wrap_text(text, max_chars_per_line=30)
+        draw_centered_text(draw, lines, font, img_size, y_spacing=70, fill=(255, 255, 255))
+
         frame_path = self.output_dir / f"frame_text_{hash(text)}.png"
         img.save(frame_path)
         return str(frame_path)
