@@ -17,34 +17,48 @@ class ScriptGenerator:
     Supports: OpenAI, Anthropic Claude, Cohere
     """
     
-    def __init__(self, api_provider: str = "anthropic"):
-        self.api_provider = api_provider
+    def __init__(self, api_provider: str = None):
+        self.api_provider = api_provider or os.getenv("AI_PROVIDER", "anthropic")
+        self.model = os.getenv("AI_MODEL", "")
         self.setup_client()
     
     def setup_client(self):
         """Initialize API client"""
         if self.api_provider == "openai":
+            key = os.getenv("OPENAI_API_KEY")
+            if not key:
+                print("Warning: OPENAI_API_KEY not set in .env")
+                self.client = None
+                return
             try:
                 import openai
-                self.client = openai.OpenAI(
-                    api_key=os.getenv("OPENAI_API_KEY")
-                )
+                self.client = openai.OpenAI(api_key=key)
             except ImportError:
                 print("Install openai: pip install openai")
                 self.client = None
         
         elif self.api_provider == "anthropic":
+            key = os.getenv("ANTHROPIC_API_KEY")
+            if not key:
+                print("Warning: ANTHROPIC_API_KEY not set in .env")
+                self.client = None
+                return
             try:
                 from anthropic import Anthropic
-                self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                self.client = Anthropic(api_key=key)
             except ImportError:
                 print("Install anthropic: pip install anthropic")
                 self.client = None
         
         elif self.api_provider == "cohere":
+            key = os.getenv("COHERE_API_KEY")
+            if not key:
+                print("Warning: COHERE_API_KEY not set in .env")
+                self.client = None
+                return
             try:
                 import cohere
-                self.client = cohere.Client(os.getenv("COHERE_API_KEY"))
+                self.client = cohere.Client(key)
             except ImportError:
                 print("Install cohere: pip install cohere")
                 self.client = None
@@ -80,9 +94,11 @@ Make it conversational, use numbers and emojis in title, and include a twist or 
         
         try:
             if self.api_provider == "anthropic" and self.client:
+                model = self.model or "claude-3-5-haiku-latest"
+                max_tok = 4000 if "long" in video_type.lower() or "5" in duration else 1500
                 response = self.client.messages.create(
-                    model="claude-3-haiku-20240307",
-                    max_tokens=1500,
+                    model=model,
+                    max_tokens=max_tok,
                     system=system_prompt,
                     messages=[
                         {"role": "user", "content": user_message}
@@ -130,7 +146,7 @@ Make it conversational, use numbers and emojis in title, and include a twist or 
             json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())
-        except:
+        except (json.JSONDecodeError, ValueError):
             pass
         
         # Fallback template
@@ -171,7 +187,7 @@ If you found this helpful, smash that like button and subscribe for more hacks!
 
 if __name__ == "__main__":
     # Test the script generator
-    generator = ScriptGenerator(api_provider="anthropic")
+    generator = ScriptGenerator()
     
     script = generator.generate_script(
         prompt="ChatGPT hack to save 5 hours per week",

@@ -29,7 +29,7 @@ class VideoGenerator:
         # Remove characters outside BMP and emoji (Symbol category)
         sanitized = ''.join(
             char for char in text 
-            if unicodedata.category(char)[0] != 'S'  # 'S' = Symbol (includes emoji)
+            if unicodedata.category(char) != 'So'  # 'So' = Symbol, other (emoji)
             and ord(char) < 0x10000  # Keep only BMP characters
         )
         # Clean up extra spaces from removed characters
@@ -132,7 +132,7 @@ class VideoGenerator:
         # Add title text
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 80)
-        except:
+        except OSError:
             font = ImageFont.load_default()
         
         # Wrap and center text
@@ -177,7 +177,7 @@ class VideoGenerator:
         
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 50)
-        except:
+        except OSError:
             font = ImageFont.load_default()
         
         # Wrap text
@@ -213,9 +213,29 @@ class VideoGenerator:
             print("No frames to create video")
             return ""
         
-        # For now, create a placeholder
-        print(f"Would create video: {output_file} ({duration_seconds}s, {resolution})")
+        # Use first frame as a static video via FFmpeg
+        try:
+            w, h = resolution.split('x')
+            cmd = [
+                'ffmpeg', '-y',
+                '-loop', '1',
+                '-i', frames[0],
+                '-c:v', 'libx264',
+                '-t', str(duration_seconds),
+                '-pix_fmt', 'yuv420p',
+                '-vf', f'scale={w}:{h}',
+                '-r', str(fps),
+                str(output_file)
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if result.returncode != 0:
+                print(f"FFmpeg error: {result.stderr[:200]}")
+                output_file.touch()  # fallback placeholder
+        except FileNotFoundError:
+            print("FFmpeg not found. Install with: sudo apt install ffmpeg")
+            output_file.touch()  # fallback placeholder
+        except subprocess.TimeoutExpired:
+            print("FFmpeg timed out")
+            output_file.touch()
         
-        # Create dummy MP4 file
-        output_file.touch()
         return str(output_file)

@@ -59,7 +59,7 @@ content:
   
   # Script generation
   script:
-    use_api: "openai"  # Options: openai, cohere, local
+    use_api: "anthropic"  # Options: anthropic, openai, cohere, local
     temperature: 0.7
     max_tokens: 1500
     include_hook: true
