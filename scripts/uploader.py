@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Dict, Optional
 from dotenv import load_dotenv
 
+from scripts.utils import build_youtube_request_body
+
 load_dotenv()
 
 class YouTubeUploader:
@@ -34,6 +36,24 @@ class YouTubeUploader:
             print("Install: pip install google-api-python-client google-auth-oauthlib")
             self.youtube = None
     
+    def _execute_upload(self, video_file: str, body: Dict) -> Optional[str]:
+        """Upload *video_file* using the given YouTube API *body* and return the video ID."""
+        media = self.MediaFileUpload(
+            video_file,
+            chunksize=-1,
+            resumable=True,
+            mimetype='video/mp4',
+        )
+
+        request = self.youtube.videos().insert(
+            part="snippet,status",
+            body=body,
+            media_body=media,
+        )
+
+        response = request.execute()
+        return response['id']
+
     def upload_video(self, video_file: str, metadata: Dict, 
                      visibility: str = "public", made_for_kids: bool = False) -> Optional[str]:
         """
@@ -49,36 +69,12 @@ class YouTubeUploader:
             return None
         
         try:
-            body = {
-                "snippet": {
-                    "title": metadata.get("title", "New Video"),
-                    "description": metadata.get("description", ""),
-                    "tags": metadata.get("tags", []),
-                    "categoryId": metadata.get("category_id", "28")
-                },
-                "status": {
-                    "privacyStatus": visibility,
-                    "madeForKids": made_for_kids
-                }
-            }
-            
-            media = self.MediaFileUpload(
-                video_file,
-                chunksize=-1,
-                resumable=True,
-                mimetype='video/mp4'
+            body = build_youtube_request_body(
+                metadata, visibility=visibility, made_for_kids=made_for_kids,
             )
+            video_id = self._execute_upload(video_file, body)
             
-            request = self.youtube.videos().insert(
-                part="snippet,status",
-                body=body,
-                media_body=media
-            )
-            
-            response = request.execute()
-            video_id = response['id']
-            
-            print(f"✅ Video uploaded successfully!")
+            print(f"Video uploaded successfully!")
             print(f"Video ID: {video_id}")
             print(f"URL: https://www.youtube.com/watch?v={video_id}")
             
@@ -98,36 +94,12 @@ class YouTubeUploader:
             return None
         
         try:
-            body = {
-                "snippet": {
-                    "title": metadata.get("title", "New Video"),
-                    "description": metadata.get("description", ""),
-                    "tags": metadata.get("tags", []),
-                    "categoryId": "28"
-                },
-                "status": {
-                    "privacyStatus": "private",
-                    "publishAt": publish_time
-                }
-            }
-            
-            media = self.MediaFileUpload(
-                video_file,
-                chunksize=-1,
-                resumable=True,
-                mimetype='video/mp4'
+            body = build_youtube_request_body(
+                metadata, visibility="private", publish_at=publish_time,
             )
+            video_id = self._execute_upload(video_file, body)
             
-            request = self.youtube.videos().insert(
-                part="snippet,status",
-                body=body,
-                media_body=media
-            )
-            
-            response = request.execute()
-            video_id = response['id']
-            
-            print(f"✅ Video scheduled for: {publish_time}")
+            print(f"Video scheduled for: {publish_time}")
             print(f"Video ID: {video_id}")
             
             return video_id

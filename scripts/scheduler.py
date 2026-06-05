@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
+from scripts.utils import create_video_pipeline
+
 load_dotenv()
 
 class VideoScheduler:
@@ -27,12 +29,12 @@ class VideoScheduler:
         """
         Schedule daily video generation and upload
         """
-        print(f"\n🎬 Scheduling {self.videos_per_day} videos daily at {self.upload_time}")
+        print(f"\nScheduling {self.videos_per_day} videos daily at {self.upload_time}")
         
         # Schedule upload at specified time
         schedule.every().day.at(self.upload_time).do(self.generate_and_upload_video)
         
-        print("✅ Scheduler started. Videos will upload daily.")
+        print("Scheduler started. Videos will upload daily.")
         print("Press Ctrl+C to stop.\n")
         
         # Keep scheduler running
@@ -44,55 +46,31 @@ class VideoScheduler:
         """
         Main workflow: generate script -> create video -> upload to YouTube
         """
-        print(f"\n📹 Generating video at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}...\n")
+        print(f"\nGenerating video at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}...\n")
         
         try:
-            # Import generators
-            from script_generator import ScriptGenerator
-            from video_generator import VideoGenerator
-            from uploader import YouTubeUploader
-            
-            # Step 1: Get prompt
             prompt, video_type, duration = self._get_next_prompt()
             print(f"Prompt: {prompt}")
             
-            # Step 2: Generate script
-            print("\n[1/4] Generating script...")
-            generator = ScriptGenerator(api_provider="openai")
-            script = generator.generate_script(prompt, video_type, duration)
-            
-            # Step 3: Create videos
-            print("\n[2/4] Creating videos...")
-            video_gen = VideoGenerator()
-            
             video_id = datetime.now().strftime("%Y%m%d%H%M%S")
-            
-            if "short" in video_type.lower():
-                shorts_file = video_gen.create_shorts_video(script, video_id)
-            
-            longform_file = video_gen.create_longform_video(script, video_id)
-            
-            # Step 4: Upload to YouTube
-            print("\n[3/4] Uploading to YouTube...")
-            uploader = YouTubeUploader()
-            
-            metadata = {
-                "title": script.get("title", "AI Hack"),
-                "description": script.get("description", "Check out this AI hack!"),
-                "tags": script.get("tags", ["AI", "automation"]),
-                "category_id": "28"
-            }
-            
-            video_id = uploader.upload_video(longform_file, metadata, visibility="public")
-            
-            if video_id:
-                print(f"\n✅ Successfully uploaded! Video ID: {video_id}")
-                self._log_upload(prompt, video_id, longform_file)
+
+            yt_video_id = create_video_pipeline(
+                prompt=prompt,
+                video_type=video_type,
+                duration=duration,
+                video_id=video_id,
+                api_provider="openai",
+                upload=True,
+            )
+
+            if yt_video_id:
+                print(f"\nSuccessfully uploaded! Video ID: {yt_video_id}")
+                self._log_upload(prompt, yt_video_id, f"output/longform_{video_id}.mp4")
             else:
-                print("❌ Upload failed")
+                print("Upload failed")
         
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"Error: {e}")
     
     def _get_next_prompt(self) -> tuple:
         """
