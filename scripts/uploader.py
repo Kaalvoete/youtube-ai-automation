@@ -17,21 +17,54 @@ class YouTubeUploader:
     """
     
     def __init__(self):
-        self.channel_id = os.getenv("YOUTUBE_CHANNEL_ID")
+        self.channel_id = os.getenv("YOUTUBE_CHANNEL_ID", "")
+        if not self.channel_id or self.channel_id == "your_youtube_channel_id_here":
+            print("Warning: YOUTUBE_CHANNEL_ID not configured. Set it in .env")
         self.setup_client()
     
     def setup_client(self):
-        """Initialize YouTube API client"""
+        """Initialize YouTube API client with OAuth credentials"""
         try:
             from google.auth.transport.requests import Request
-            from google.oauth2.service_account import Credentials
+            from google.oauth2.credentials import Credentials
+            from google_auth_oauthlib.flow import InstalledAppFlow
             from googleapiclient.discovery import build
             from googleapiclient.http import MediaFileUpload
             
-            self.youtube = build('youtube', 'v3')
             self.MediaFileUpload = MediaFileUpload
+            creds = None
+            token_path = Path("token.json")
+            credentials_path = Path("youtube_credentials.json")
+            
+            SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+            
+            # Load existing token
+            if token_path.exists():
+                creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)
+            
+            # Refresh or create new credentials
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            elif not creds or not creds.valid:
+                if not credentials_path.exists():
+                    print("Error: youtube_credentials.json not found.")
+                    print("Download OAuth credentials from Google Cloud Console.")
+                    self.youtube = None
+                    return
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    str(credentials_path), SCOPES
+                )
+                creds = flow.run_local_server(port=0)
+                # Save token for future use
+                with open(str(token_path), "w") as token_file:
+                    token_file.write(creds.to_json())
+            
+            self.youtube = build('youtube', 'v3', credentials=creds)
         except ImportError:
             print("Install: pip install google-api-python-client google-auth-oauthlib")
+            self.youtube = None
+        except Exception as e:
+            print(f"Error setting up YouTube client: {e}")
             self.youtube = None
     
     def upload_video(self, video_file: str, metadata: Dict, 

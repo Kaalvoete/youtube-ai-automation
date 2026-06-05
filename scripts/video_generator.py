@@ -6,6 +6,7 @@ Fixes Unicode/emoji encoding issues
 """
 
 import os
+import re
 import json
 import unicodedata
 from pathlib import Path
@@ -35,12 +36,23 @@ class VideoGenerator:
         # Clean up extra spaces from removed characters
         return ' '.join(sanitized.split())
     
+    def _sanitize_video_id(self, video_id: str) -> str:
+        """
+        Sanitize video_id to prevent path traversal attacks.
+        Only allow alphanumeric characters, hyphens, and underscores.
+        """
+        sanitized = re.sub(r'[^a-zA-Z0-9_\-]', '_', video_id)
+        if not sanitized:
+            sanitized = "unnamed"
+        return sanitized
+
     def create_shorts_video(self, script: Dict, video_id: str = "1") -> str:
         """
         Create a YouTube Shorts video (60 seconds, 1080x1920)
         """
         print(f"[SHORTS] Generating 60-second video...")
         
+        video_id = self._sanitize_video_id(video_id)
         output_file = self.output_dir / f"shorts_{video_id}.mp4"
         
         # Generate thumbnail/title frame
@@ -78,6 +90,7 @@ class VideoGenerator:
         """
         print(f"[LONG-FORM] Generating 3-5 minute video...")
         
+        video_id = self._sanitize_video_id(video_id)
         output_file = self.output_dir / f"longform_{video_id}.mp4"
         
         # Generate frames for different sections
@@ -132,7 +145,7 @@ class VideoGenerator:
         # Add title text
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 80)
-        except:
+        except (IOError, OSError):
             font = ImageFont.load_default()
         
         # Wrap and center text
@@ -177,7 +190,7 @@ class VideoGenerator:
         
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 50)
-        except:
+        except (IOError, OSError):
             font = ImageFont.load_default()
         
         # Wrap text
