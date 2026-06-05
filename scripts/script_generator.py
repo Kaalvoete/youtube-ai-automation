@@ -6,8 +6,11 @@ Uses OpenAI API, Anthropic Claude, Cohere, or free alternatives
 
 import os
 import json
+import logging
 from typing import Dict, Tuple
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -30,7 +33,9 @@ class ScriptGenerator:
                     api_key=os.getenv("OPENAI_API_KEY")
                 )
             except ImportError:
-                print("Install openai: pip install openai")
+                logger.warning(
+                    "openai package not installed. Install with: pip install openai"
+                )
                 self.client = None
         
         elif self.api_provider == "anthropic":
@@ -38,7 +43,9 @@ class ScriptGenerator:
                 from anthropic import Anthropic
                 self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
             except ImportError:
-                print("Install anthropic: pip install anthropic")
+                logger.warning(
+                    "anthropic package not installed. Install with: pip install anthropic"
+                )
                 self.client = None
         
         elif self.api_provider == "cohere":
@@ -46,8 +53,13 @@ class ScriptGenerator:
                 import cohere
                 self.client = cohere.Client(os.getenv("COHERE_API_KEY"))
             except ImportError:
-                print("Install cohere: pip install cohere")
+                logger.warning(
+                    "cohere package not installed. Install with: pip install cohere"
+                )
                 self.client = None
+        
+        else:
+            raise ValueError(f"Unsupported API provider: {self.api_provider}")
     
     def generate_script(self, prompt: str, video_type: str, duration: str = "3-5") -> Dict:
         """
@@ -119,19 +131,26 @@ Make it conversational, use numbers and emojis in title, and include a twist or 
             return script_data
         
         except Exception as e:
-            print(f"Error generating script: {e}")
+            logger.error(
+                "Failed to generate script via %s API: %s", self.api_provider, e,
+                exc_info=True,
+            )
             return self._generate_template(prompt, video_type, duration)
     
     def _parse_script_response(self, response_text: str) -> Dict:
         """Parse JSON from API response"""
+        import re
+
         try:
-            # Try to extract JSON from response
-            import re
             json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())
-        except:
-            pass
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.warning(
+                "Failed to parse JSON from API response: %s. "
+                "Falling back to raw text.",
+                e,
+            )
         
         # Fallback template
         return {

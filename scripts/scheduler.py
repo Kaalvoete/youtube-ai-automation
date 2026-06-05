@@ -4,11 +4,14 @@ Daily Scheduler - Automatically generates and uploads videos daily
 """
 
 import os
+import logging
 import schedule
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -19,7 +22,13 @@ class VideoScheduler:
     
     def __init__(self):
         self.upload_time = os.getenv("DAILY_UPLOAD_TIME", "09:00")
-        self.videos_per_day = int(os.getenv("VIDEOS_PER_DAY", "2"))
+        try:
+            self.videos_per_day = int(os.getenv("VIDEOS_PER_DAY", "2"))
+        except ValueError as e:
+            raise ValueError(
+                f"VIDEOS_PER_DAY must be a valid integer, "
+                f"got: {os.getenv('VIDEOS_PER_DAY')!r}"
+            ) from e
         self.prompt_file = "config/prompts.txt"
         self.current_prompt_index = 0
     
@@ -92,7 +101,9 @@ class VideoScheduler:
                 print("❌ Upload failed")
         
         except Exception as e:
-            print(f"❌ Error: {e}")
+            logger.error(
+                "Video generation/upload failed: %s", e, exc_info=True
+            )
     
     def _get_next_prompt(self) -> tuple:
         """
@@ -119,9 +130,11 @@ class VideoScheduler:
             
             return (prompt, video_type.lower(), duration)
         
-        except Exception as e:
-            print(f"Error reading prompts: {e}")
-            return ("AI Automation Hack", "tutorial", "5-min")
+        except (IOError, OSError) as e:
+            logger.error(
+                "Failed to read prompts file '%s': %s", self.prompt_file, e
+            )
+            raise
     
     def _log_upload(self, prompt: str, video_id: str, file_path: str):
         """

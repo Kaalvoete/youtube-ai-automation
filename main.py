@@ -4,11 +4,17 @@ Main entry point for YouTube AI Automation system
 """
 
 import click
+import logging
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 @click.group()
 def cli():
@@ -110,28 +116,33 @@ def test(demo: bool):
     """Test the system"""
     print("\n🧪 Running tests...\n")
     
-    from scripts.script_generator import ScriptGenerator
-    from scripts.video_generator import VideoGenerator
+    try:
+        from scripts.script_generator import ScriptGenerator
+        from scripts.video_generator import VideoGenerator
+        
+        # Test script generation
+        print("[TEST 1] Script Generation")
+        generator = ScriptGenerator(api_provider="anthropic")
+        script = generator.generate_script(
+            "Use ChatGPT to automate email",
+            "tutorial",
+            "5-min"
+        )
+        print(f"✅ Generated script with title: {script.get('title', 'N/A')}")
+        
+        # Test video generation
+        print("\n[TEST 2] Video Generation")
+        video_gen = VideoGenerator()
+        shorts_file = video_gen.create_shorts_video(script, "test")
+        longform_file = video_gen.create_longform_video(script, "test")
+        print(f"✅ Created Shorts: {shorts_file}")
+        print(f"✅ Created Long-form: {longform_file}")
+        
+        print("\n✅ All tests passed!")
     
-    # Test script generation
-    print("[TEST 1] Script Generation")
-    generator = ScriptGenerator(api_provider="anthropic")
-    script = generator.generate_script(
-        "Use ChatGPT to automate email",
-        "tutorial",
-        "5-min"
-    )
-    print(f"✅ Generated script with title: {script.get('title', 'N/A')}")
-    
-    # Test video generation
-    print("\n[TEST 2] Video Generation")
-    video_gen = VideoGenerator()
-    shorts_file = video_gen.create_shorts_video(script, "test")
-    longform_file = video_gen.create_longform_video(script, "test")
-    print(f"✅ Created Shorts: {shorts_file}")
-    print(f"✅ Created Long-form: {longform_file}")
-    
-    print("\n✅ All tests passed!")
+    except Exception as e:
+        print(f"❌ Test failed: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     cli()
