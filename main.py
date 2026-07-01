@@ -3,6 +3,7 @@
 Main entry point for YouTube AI Automation system
 """
 
+import os
 import click
 import sys
 from pathlib import Path
@@ -41,7 +42,8 @@ def create(
         
         # Generate script
         print("[1/3] Generating script...")
-        generator = ScriptGenerator(api_provider="anthropic")
+        provider = os.getenv("AI_PROVIDER", "anthropic")
+        generator = ScriptGenerator(api_provider=provider)
         script = generator.generate_script(prompt, type, duration)
         print(f"✅ Script created: {script.get('title', 'Untitled')}\n")
         
@@ -115,7 +117,8 @@ def test(demo: bool):
     
     # Test script generation
     print("[TEST 1] Script Generation")
-    generator = ScriptGenerator(api_provider="anthropic")
+    provider = os.getenv("AI_PROVIDER", "anthropic")
+    generator = ScriptGenerator(api_provider=provider)
     script = generator.generate_script(
         "Use ChatGPT to automate email",
         "tutorial",

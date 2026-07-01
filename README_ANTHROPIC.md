@@ -40,7 +40,7 @@ python main.py schedule
 ## Why Claude?
 
 ✅ **Free tier available** - No credit card required initially  
-✅ **High quality** - Claude 3.5 Sonnet is excellent for creative writing  
+✅ **High quality** - Claude 3.5 Haiku is fast and excellent for creative writing  
 ✅ **Fast responses** - Great for real-time video script generation  
 ✅ **No quota errors** - Free tier has fair usage limits  
 
@@ -54,12 +54,23 @@ python main.py schedule
 
 If you want to use a different provider:
 
-```python
+Set the `AI_PROVIDER` variable in your `.env` file:
+
+```bash
 # Use OpenAI instead
-generator = ScriptGenerator(api_provider="openai")
+AI_PROVIDER=openai
 
 # Or Cohere
-generator = ScriptGenerator(api_provider="cohere")
+AI_PROVIDER=cohere
+
+# Optionally set a specific model
+AI_MODEL=claude-sonnet-4-20250514
+```
+
+Or pass it programmatically:
+
+```python
+generator = ScriptGenerator(api_provider="openai")
 ```
 
 ## Troubleshooting

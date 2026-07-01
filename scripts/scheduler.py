@@ -29,10 +29,11 @@ class VideoScheduler:
         """
         print(f"\n🎬 Scheduling {self.videos_per_day} videos daily at {self.upload_time}")
         
-        # Schedule upload at specified time
-        schedule.every().day.at(self.upload_time).do(self.generate_and_upload_video)
+        # Schedule uploads at specified time
+        for i in range(self.videos_per_day):
+            schedule.every().day.at(self.upload_time).do(self.generate_and_upload_video)
         
-        print("✅ Scheduler started. Videos will upload daily.")
+        print(f"✅ Scheduler started. {self.videos_per_day} video(s) will upload daily.")
         print("Press Ctrl+C to stop.\n")
         
         # Keep scheduler running
@@ -48,9 +49,9 @@ class VideoScheduler:
         
         try:
             # Import generators
-            from script_generator import ScriptGenerator
-            from video_generator import VideoGenerator
-            from uploader import YouTubeUploader
+            from scripts.script_generator import ScriptGenerator
+            from scripts.video_generator import VideoGenerator
+            from scripts.uploader import YouTubeUploader
             
             # Step 1: Get prompt
             prompt, video_type, duration = self._get_next_prompt()
@@ -58,7 +59,8 @@ class VideoScheduler:
             
             # Step 2: Generate script
             print("\n[1/4] Generating script...")
-            generator = ScriptGenerator(api_provider="openai")
+            provider = os.getenv("AI_PROVIDER", "anthropic")
+            generator = ScriptGenerator(api_provider=provider)
             script = generator.generate_script(prompt, video_type, duration)
             
             # Step 3: Create videos

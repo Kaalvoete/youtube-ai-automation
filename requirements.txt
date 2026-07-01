@@ -7,7 +7,10 @@ moviepy==1.0.3
 click==8.1.7
 schedule==1.2.0
 
-# OpenAI (optional - for script generation)
+# Anthropic (default provider for script generation)
+anthropic>=0.18.0
+
+# OpenAI (optional - alternative script generation)
 openai==1.0.0
 
 # YouTube API
